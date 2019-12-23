@@ -1,0 +1,83 @@
+
+.led1Bright{
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 40px;
+	background-color:#F22;
+	display: inline-block;
+}
+.led2Bright{
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#F22;
+	display: inline-block;
+}
+.led3Bright{
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#F22;
+	display: inline-block;
+}
+.led4Bright{
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#F22;
+	display: inline-block;
+}
+
+.segmentABright{
+	
+	background-color:#FFF;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;	
+}
+.segmentFBright{
+	
+	background-color:#FFF;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentBBright{
+	
+	background-color:#FFF;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentGBright{
+	
+	background-color:#FFF;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;
+}
+.segmentEBright{
+	
+	background-color:#FFF;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentCBright{
+	
+	background-color:#FFF;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentDBright{
+	
+	background-color:#FFF;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;
+}

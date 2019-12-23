@@ -1,0 +1,4 @@
+vendor/
+db/
+app/config/config.php
+app/config/email.php

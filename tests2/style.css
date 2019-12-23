@@ -1,0 +1,161 @@
+body {
+	
+  background-color: #9A9;
+  
+}
+.title{
+	
+	padding: 20px 20px 20px 120px;
+	
+}
+.display{
+	
+	background-color:#222;
+	margin-left: 100px;
+	width:160px;
+	padding: 25px;
+	position: relative;
+	
+}
+.voidSpace{
+	
+	min-width: 90px;
+	min-height: 10px;
+	display: inline-block;
+	
+}
+.segmentADark{
+	
+	background-color:#333;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;
+	
+}
+.segmentFDark{
+	
+	background-color:#333;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentBDark{
+	
+	background-color:#333;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentGDark{
+	
+	background-color:#333;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;
+	
+}
+.segmentEDark{
+	
+	background-color:#333;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentCDark{
+	
+	background-color:#333;
+	min-width: 30px;
+	min-height: 100px;
+	display: inline-block;
+	
+}
+.segmentDDark{
+	
+	background-color:#333;
+	min-height: 30px;
+	max-width: 100px;
+	margin-left: 30px;
+	
+}
+.leds{
+	
+	margin-top: 50px;
+	padding-left: 30px;
+	
+}
+.led1Dark{
+	
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 40px;
+	background-color:#222;
+	display: inline-block;
+	
+}
+.led2Dark{
+	
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#222;
+	display: inline-block;
+	
+}
+.led3Dark{
+	
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#222;
+	display: inline-block;
+	
+}
+.led4Dark{
+	
+	min-height: 30px;
+	min-width: 30px;
+	margin-left: 50px;
+	background-color:#222;
+	display: inline-block;
+	
+}
+.buttons{
+	
+	padding-top: 20px;
+	padding-left: 30px;	
+	
+}
+.button{
+	
+	margin-left: 30px;
+	min-height: 50px;
+	min-width: 50px;	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,23 @@
+{
+    "name": "sistematico/php-mvc-sqlite-crud",
+    "description": "Simple PHP MVC CRUD",
+    "type": "project",
+    "license": "Apache",
+    "authors": [
+        {
+            "name": "Lucas Saliés Brum",
+            "email": "lucas@archlinux.com.br"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "phpmailer/phpmailer": "~6.0"
+    },
+    "autoload":
+    {
+        "psr-4":
+        {
+            "Crud\\" : "app/"
+        }
+    }
+}
