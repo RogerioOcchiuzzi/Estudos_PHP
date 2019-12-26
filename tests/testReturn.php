@@ -1,6 +1,6 @@
 <?php
 
-$returnInclude = include("testRetrunScript.php");
+$returnInclude = include("testReturnScript.php");
 
 //var_dump($testReturn);
 
