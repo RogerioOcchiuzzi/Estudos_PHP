@@ -1,6 +1,6 @@
 <?php
 
-require('Test6.php');
+require('6.php');
 
 Test6::nunberTestFunction1();
 Test6::$nunberTest1 = 8;

@@ -6,7 +6,7 @@ echo ("<br>");
 
 $text = ' How can a clam cram in a clean cream can? ';
 
-
+/* 
 echo ("$text<br>");
 echo (strLen((string) $text )); // 43
 echo ("<br>");
@@ -33,3 +33,6 @@ echo ("<br>");
 
 var_dump(strPos($text, 'can')); // false
 var_dump(strPos($text, 'could')); // 4
+ */
+var_dump(str_split($text, 10));
+var_dump(explode(" ", $text));
