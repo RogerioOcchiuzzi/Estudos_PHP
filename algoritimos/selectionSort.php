@@ -13,7 +13,6 @@ function insertionSort(array &$arrayValores){
     imprimeBonito($arrayValores, '');
 
     $tamanho = count($arrayValores);
-    $arrayAnterior = $arrayValores;
 
     for($i = 0; $i < $tamanho ;$i++){
 

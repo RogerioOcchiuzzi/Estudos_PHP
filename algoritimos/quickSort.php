@@ -8,6 +8,23 @@ complexidade caso médio	O(n log n)
 complexidade melhor caso O(n log n)
 */
 
+function quickSort(&$arrayValores, $esquerda, $direita){
+
+    imprimeBonito($arrayValores, '');
+
+    $indice = partition($arrayValores,$esquerda,$direita);
+
+    if ($esquerda < $indice - 1){
+
+        quickSort($arrayValores, $esquerda, $indice - 1);
+    }
+        
+    if ($indice < $direita){
+
+        quickSort($arrayValores, $indice, $direita);
+    }       
+}
+
 function partition(&$arrayValores ,$esquerda ,$direita ){
 
     $pivot=$arrayValores[($esquerda+$direita)/2];
@@ -36,23 +53,6 @@ function partition(&$arrayValores ,$esquerda ,$direita ){
         }
     }
     return $esquerda;
-}
-
-function quickSort(&$arrayValores, $esquerda, $direita){
-
-    imprimeBonito($arrayValores, '');
-
-    $indice = partition($arrayValores,$esquerda,$direita);
-
-    if ($esquerda < $indice - 1){
-
-        quickSort($arrayValores, $esquerda, $indice - 1);
-    }
-        
-    if ($indice < $direita){
-
-        quickSort($arrayValores, $indice, $direita);
-    }       
 }
 
 //$arrayTeste = array(10,9,8,7,6,5,4,3,2,1,0);
