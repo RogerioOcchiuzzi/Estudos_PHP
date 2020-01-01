@@ -1,0 +1,29 @@
+{
+    "require": {
+        "monolog/monolog": "1.17",
+        "twig/twig": "1.23"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.1.3"
+    },
+    "conflict": {
+        "phpunit/php-timer": ">=2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bookstore\\Tests\\": "tests",
+            "Bookstore\\": "src"
+        }
+    },
+    "name": "picahielos/bookstore",
+    "description": "Manages an online bookstore.",
+    "minimum-stability": "stable",
+    "license": "Apache-2.0",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Antonio Lopez",
+            "email": "antonio.lopez.zapata@gmail.com"
+        }
+    ]
+}
