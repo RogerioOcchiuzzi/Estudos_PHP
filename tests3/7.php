@@ -10,4 +10,4 @@ $t = new Test6(5);
 $t->print();
 $t->printRecursive($t->getParam());
 
-echo $t->testPrint("egwer");
+echo $t->testPrint(10);
