@@ -18,33 +18,7 @@ Parameters
   for more information.
 
 * **twig.form.templates** (optional): An array of templates used to render
-  forms (only available when the ``FormServiceProvider`` is enabled). The
-  default theme is ``form_div_layout.html.twig``, but you can use the other
-  built-in themes: ``form_table_layout.html.twig``,
-  ``bootstrap_3_layout.html.twig``, and
-  ``bootstrap_3_horizontal_layout.html.twig``.
-
-* **twig.date.format** (optional): Default format used by the ``date``
-  filter. The format string must conform to the format accepted by
-  `date() <http://www.php.net/date>`_.
-
-* **twig.date.interval_format** (optional): Default format used by the
-  ``date`` filter when the filtered data is of type `DateInterval <http://www.php.net/DateInterval>`_.
-  The format string must conform to the format accepted by
-  `DateInterval::format() <http://www.php.net/DateInterval.format>`_.
-
-* **twig.date.timezone** (optional): Default timezone used when formatting
-  dates. If set to ``null`` the timezone returned by `date_default_timezone_get() <http://www.php.net/date_default_timezone_get>`_
-  is used.
-
-* **twig.number_format.decimals** (optional): Default number of decimals
-  displayed by the ``number_format`` filter.
-
-* **twig.number_format.decimal_point** (optional): Default separator for
-  the decimal point used by the ``number_format`` filter.
-
-* **twig.number_format.thousands_separator** (optional): Default thousands
-  separator used by the ``number_format`` filter.
+  forms (only available when the ``FormServiceProvider`` is enabled).
 
 Services
 --------
@@ -67,22 +41,12 @@ Registering
 
 .. note::
 
-    Add Twig as a dependency:
+    Twig comes with the "fat" Silex archive but not with the regular one. If
+    you are using Composer, add it as a dependency:
 
     .. code-block:: bash
 
         composer require twig/twig
-
-Usage
------
-
-The Twig provider provides a ``twig`` service that can render templates::
-
-    $app->get('/hello/{name}', function ($name) use ($app) {
-        return $app['twig']->render('hello.twig', array(
-            'name' => $name,
-        ));
-    });
 
 Symfony Components Integration
 ------------------------------
@@ -95,87 +59,60 @@ some Symfony components and Twig. Add it as a dependency:
     composer require symfony/twig-bridge
 
 When present, the ``TwigServiceProvider`` will provide you with the following
-additional capabilities.
+additional capabilities:
 
-* Access to the ``path()`` and ``url()`` functions. You can find more
-  information in the `Symfony Routing documentation
-  <http://symfony.com/doc/current/book/routing.html#generating-urls-from-a-template>`_:
+* **UrlGeneratorServiceProvider**: If you are using the
+  ``UrlGeneratorServiceProvider``, you will have access to the ``path()`` and
+  ``url()`` functions. You can find more information in the `Symfony Routing
+  documentation
+  <http://symfony.com/doc/current/book/routing.html#generating-urls-from-a-template>`_.
 
-  .. code-block:: jinja
+* **TranslationServiceProvider**: If you are using the
+  ``TranslationServiceProvider``, you will get the ``trans()`` and
+  ``transchoice()`` functions for translation in Twig templates. You can find
+  more information in the `Symfony Translation documentation
+  <http://symfony.com/doc/current/book/translation.html#twig-templates>`_.
 
-      {{ path('homepage') }}
-      {{ url('homepage') }} {# generates the absolute url http://example.org/ #}
-      {{ path('hello', {name: 'Fabien'}) }}
-      {{ url('hello', {name: 'Fabien'}) }} {# generates the absolute url http://example.org/hello/Fabien #}
+* **FormServiceProvider**: If you are using the ``FormServiceProvider``, you
+  will get a set of helpers for working with forms in templates. You can find
+  more information in the `Symfony Forms reference
+  <http://symfony.com/doc/current/reference/forms/twig_reference.html>`_.
 
-* Access to the ``absolute_url()`` and ``relative_path()`` Twig functions.
+* **SecurityServiceProvider**: If you are using the
+  ``SecurityServiceProvider``, you will have access to the ``is_granted()``
+  function in templates. You can find more information in the `Symfony
+  Security documentation
+  <http://symfony.com/doc/current/book/security.html#access-control-in-templates>`_.
 
-Translations Support
-~~~~~~~~~~~~~~~~~~~~
+Usage
+-----
 
-If you are using the ``TranslationServiceProvider``, you will get the
-``trans()`` and ``transchoice()`` functions for translation in Twig templates.
-You can find more information in the `Symfony Translation documentation
-<http://symfony.com/doc/current/book/translation.html#twig-templates>`_.
+The Twig provider provides a ``twig`` service::
 
-Form Support
-~~~~~~~~~~~~
+    $app->get('/hello/{name}', function ($name) use ($app) {
+        return $app['twig']->render('hello.twig', array(
+            'name' => $name,
+        ));
+    });
 
-If you are using the ``FormServiceProvider``, you will get a set of helpers for
-working with forms in templates. You can find more information in the `Symfony
-Forms reference
-<http://symfony.com/doc/current/reference/forms/twig_reference.html>`_.
+This will render a file named ``views/hello.twig``.
 
-Security Support
-~~~~~~~~~~~~~~~~
-
-If you are using the ``SecurityServiceProvider``, you will have access to the
-``is_granted()`` function in templates. You can find more information in the
-`Symfony Security documentation
-<http://symfony.com/doc/current/book/security.html#access-control-in-templates>`_.
-
-Web Link Support
-~~~~~~~~~~~~~~~~
-
-If you are using the ``symfony/web-link`` component, you will have access to the
-``preload()``, ``prefetch()``, ``prerender()``, ``dns_prefetch()``,
-``preconnect()`` and ``link()`` functions in templates. You can find more
-information in the `Symfony WebLink documentation
-<https://symfony.com/doc/current/components/weblink/introduction.html>`_.
-
-Global Variable
-~~~~~~~~~~~~~~~
-
-When the Twig bridge is available, the ``global`` variable refers to an
-instance of `AppVariable <http://api.symfony.com/master/Symfony/Bridge/Twig/AppVariable.html>`_.
-It gives access to the following methods:
+In any Twig template, the ``app`` variable refers to the Application object.
+So you can access any service from within your view. For example to access
+``$app['request']->getHost()``, just put this in your template:
 
 .. code-block:: jinja
 
-    {# The current Request #}
-    {{ global.request }}
-
-    {# The current User (when security is enabled) #}
-    {{ global.user }}
-
-    {# The current Session #}
-    {{ global.session }}
-
-    {# The debug flag #}
-    {{ global.debug }}
-
-    {# The flash messages (Symfony 3.3 or later) #}
-    {{ global.flashes }}
-
-Rendering a Controller
-~~~~~~~~~~~~~~~~~~~~~~
+    {{ app.request.host }}
 
 A ``render`` function is also registered to help you render another controller
-from a template (available when the :doc:`HttpFragment Service Provider
-</providers/http_fragment>` is registered):
+from a template:
 
 .. code-block:: jinja
 
+    {{ render(app.request.baseUrl ~ '/sidebar') }}
+
+    {# or if you are also using the UrlGeneratorServiceProvider #}
     {{ render(url('sidebar')) }}
 
     {# or you can reference a controller directly without defining a route for it #}
@@ -227,12 +164,12 @@ Customization
 You can configure the Twig environment before using it by extending the
 ``twig`` service::
 
-    $app->extend('twig', function($twig, $app) {
+    $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
         $twig->addGlobal('pi', 3.14);
         $twig->addFilter('levenshtein', new \Twig_Filter_Function('levenshtein'));
 
         return $twig;
-    });
+    }));
 
 For more information, check out the `official Twig documentation
 <http://twig.sensiolabs.org>`_.

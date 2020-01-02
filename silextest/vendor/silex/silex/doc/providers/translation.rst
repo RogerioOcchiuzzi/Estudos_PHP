@@ -16,9 +16,6 @@ Parameters
 * **locale_fallbacks** (optional): Fallback locales for the translator. It will
   be used when the current locale has no messages set. Defaults to ``en``.
 
-* **translator.cache_dir** (optional): Defines the cache directory
-  if you want translations to be cached.
-
 Services
 --------
 
@@ -40,14 +37,15 @@ Registering
 
 .. code-block:: php
 
-    $app->register(new Silex\Provider\LocaleServiceProvider());
     $app->register(new Silex\Provider\TranslationServiceProvider(), array(
         'locale_fallbacks' => array('en'),
     ));
 
 .. note::
 
-    Add the Symfony Translation Component as a dependency:
+    The Symfony Translation Component comes with the "fat" Silex archive but
+    not with the regular one. If you are using Composer, add it as a
+    dependency:
 
     .. code-block:: bash
 
@@ -155,7 +153,7 @@ translation files::
 
     use Symfony\Component\Translation\Loader\YamlFileLoader;
 
-    $app->extend('translator', function($translator, $app) {
+    $app['translator'] = $app->share($app->extend('translator', function($translator, $app) {
         $translator->addLoader('yaml', new YamlFileLoader());
 
         $translator->addResource('yaml', __DIR__.'/locales/en.yml', 'en');
@@ -163,7 +161,7 @@ translation files::
         $translator->addResource('yaml', __DIR__.'/locales/fr.yml', 'fr');
 
         return $translator;
-    });
+    }));
 
 XLIFF-based language files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,8 +184,15 @@ Accessing translations in Twig templates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once loaded, the translation service provider is available from within Twig
-templates when using the Twig bridge provided by Symfony (see
-:doc:`TwigServiceProvider </providers/twig>`):
+templates:
+
+.. code-block:: jinja
+
+    {{ app.translator.trans('translation_key') }}
+
+Moreover, when using the Twig bridge provided by Symfony (see
+:doc:`TwigServiceProvider </providers/twig>`), you will be allowed to translate
+strings in the Twig way:
 
 .. code-block:: jinja
 

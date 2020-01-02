@@ -8,15 +8,8 @@ standalone.
 Parameters
 ----------
 
-* **validator.validator_service_ids** (optional): An array of service names representing
+* **validator.validator_service_ids**: An array of service names representing
   validators.
-
-* **validator.translation_domain** (optional): The translation domain to use for translating validator messages.
-  (Defaults to ``validators``.)
-
-* **validator.object_initializers** (optional): An array of object initializers.
-  See `the relevant Validation documentation
-  <http://symfony.com/doc/current/reference/dic_tags.html#validator-initializer>`_.
 
 Services
 --------
@@ -41,7 +34,8 @@ Registering
 
 .. note::
 
-    Add the Symfony Validator Component as a dependency:
+    The Symfony Validator Component comes with the "fat" Silex archive but not
+    with the regular one. If you are using Composer, add it as a dependency:
 
     .. code-block:: bash
 
@@ -78,6 +72,18 @@ collection of constraints::
 
     use Symfony\Component\Validator\Constraints as Assert;
 
+    class Book
+    {
+        public $title;
+        public $author;
+    }
+
+    class Author
+    {
+        public $first_name;
+        public $last_name;
+    }
+
     $book = array(
         'title' => 'My Book',
         'author' => array(
@@ -110,18 +116,6 @@ If you want to add validations to a class, you can define the constraint for
 the class properties and getters, and then call the ``validate`` method::
 
     use Symfony\Component\Validator\Constraints as Assert;
-
-    class Book
-    {
-        public $title;
-        public $author;
-    }
-
-    class Author
-    {
-        public $first_name;
-        public $last_name;
-    }
 
     $author = new Author();
     $author->first_name = 'Fabien';

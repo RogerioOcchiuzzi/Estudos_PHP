@@ -31,9 +31,25 @@ class RequestContext
     private $httpPort;
     private $httpsPort;
     private $queryString;
-    private $parameters = [];
 
-    public function __construct(string $baseUrl = '', string $method = 'GET', string $host = 'localhost', string $scheme = 'http', int $httpPort = 80, int $httpsPort = 443, string $path = '/', string $queryString = '')
+    /**
+     * @var array
+     */
+    private $parameters = array();
+
+    /**
+     * Constructor.
+     *
+     * @param string $baseUrl     The base URL
+     * @param string $method      The HTTP method
+     * @param string $host        The HTTP host name
+     * @param string $scheme      The HTTP scheme
+     * @param int    $httpPort    The HTTP port
+     * @param int    $httpsPort   The HTTPS port
+     * @param string $path        The path
+     * @param string $queryString The query string
+     */
+    public function __construct($baseUrl = '', $method = 'GET', $host = 'localhost', $scheme = 'http', $httpPort = 80, $httpsPort = 443, $path = '/', $queryString = '')
     {
         $this->setBaseUrl($baseUrl);
         $this->setMethod($method);
@@ -48,7 +64,9 @@ class RequestContext
     /**
      * Updates the RequestContext information based on a HttpFoundation Request.
      *
-     * @return $this
+     * @param Request $request A Request instance
+     *
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function fromRequest(Request $request)
     {
@@ -57,8 +75,8 @@ class RequestContext
         $this->setMethod($request->getMethod());
         $this->setHost($request->getHost());
         $this->setScheme($request->getScheme());
-        $this->setHttpPort($request->isSecure() || null === $request->getPort() ? $this->httpPort : $request->getPort());
-        $this->setHttpsPort($request->isSecure() && null !== $request->getPort() ? $request->getPort() : $this->httpsPort);
+        $this->setHttpPort($request->isSecure() ? $this->httpPort : $request->getPort());
+        $this->setHttpsPort($request->isSecure() ? $request->getPort() : $this->httpsPort);
         $this->setQueryString($request->server->get('QUERY_STRING', ''));
 
         return $this;
@@ -79,7 +97,7 @@ class RequestContext
      *
      * @param string $baseUrl The base URL
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setBaseUrl($baseUrl)
     {
@@ -103,7 +121,7 @@ class RequestContext
      *
      * @param string $pathInfo The path info
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setPathInfo($pathInfo)
     {
@@ -129,7 +147,7 @@ class RequestContext
      *
      * @param string $method The HTTP method
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setMethod($method)
     {
@@ -155,7 +173,7 @@ class RequestContext
      *
      * @param string $host The HTTP host
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setHost($host)
     {
@@ -179,7 +197,7 @@ class RequestContext
      *
      * @param string $scheme The HTTP scheme
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setScheme($scheme)
     {
@@ -203,7 +221,7 @@ class RequestContext
      *
      * @param int $httpPort The HTTP port
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setHttpPort($httpPort)
     {
@@ -227,7 +245,7 @@ class RequestContext
      *
      * @param int $httpsPort The HTTPS port
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setHttpsPort($httpsPort)
     {
@@ -251,7 +269,7 @@ class RequestContext
      *
      * @param string $queryString The query string (after "?")
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setQueryString($queryString)
     {
@@ -276,7 +294,7 @@ class RequestContext
      *
      * @param array $parameters The parameters
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setParameters(array $parameters)
     {
@@ -306,7 +324,7 @@ class RequestContext
      */
     public function hasParameter($name)
     {
-        return \array_key_exists($name, $this->parameters);
+        return array_key_exists($name, $this->parameters);
     }
 
     /**
@@ -315,7 +333,7 @@ class RequestContext
      * @param string $name      A parameter name
      * @param mixed  $parameter The parameter value
      *
-     * @return $this
+     * @return RequestContext The current instance, implementing a fluent interface
      */
     public function setParameter($name, $parameter)
     {

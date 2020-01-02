@@ -15,7 +15,6 @@ use Silex\Application;
 use Silex\WebTestCase;
 use Silex\Provider\SessionServiceProvider;
 use Symfony\Component\HttpKernel\Client;
-use Symfony\Component\HttpFoundation\Session;
 
 /**
  * SessionProvider test cases.
@@ -27,6 +26,11 @@ class SessionServiceProviderTest extends WebTestCase
 {
     public function testRegister()
     {
+        /*
+         * Smoke test
+         */
+        $defaultStorage = $this->app['session.storage.native'];
+
         $client = $this->createClient();
 
         $client->request('get', '/login');
@@ -46,9 +50,9 @@ class SessionServiceProviderTest extends WebTestCase
     {
         $app = new Application();
 
-        $app->register(new SessionServiceProvider(), [
+        $app->register(new SessionServiceProvider(), array(
             'session.test' => true,
-        ]);
+        ));
 
         $app->get('/login', function () use ($app) {
             $app['session']->set('logged_in', true);
@@ -77,9 +81,9 @@ class SessionServiceProviderTest extends WebTestCase
     {
         $app = new Application();
 
-        $app->register(new SessionServiceProvider(), [
+        $app->register(new SessionServiceProvider(), array(
             'session.test' => true,
-        ]);
+        ));
 
         $app->get('/', function () {
             return 'A welcome page.';
@@ -99,23 +103,5 @@ class SessionServiceProviderTest extends WebTestCase
 
         $client->request('get', '/robots.txt');
         $this->assertEquals('Informations for robots.', $client->getResponse()->getContent());
-    }
-
-    public function testSessionRegister()
-    {
-        $app = new Application();
-
-        $attrs = new Session\Attribute\AttributeBag();
-        $flash = new Session\Flash\FlashBag();
-        $app->register(new SessionServiceProvider(), [
-            'session.attribute_bag' => $attrs,
-            'session.flash_bag' => $flash,
-            'session.test' => true,
-        ]);
-
-        $session = $app['session'];
-
-        $this->assertSame($flash, $session->getBag('flashes'));
-        $this->assertSame($attrs, $session->getBag('attributes'));
     }
 }

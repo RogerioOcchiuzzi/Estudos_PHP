@@ -11,42 +11,45 @@
 
 namespace Silex;
 
-use Pimple\Container;
-use Pimple\ServiceProviderInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\EventListener\ResponseListener;
+use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Silex\Api\BootableProviderInterface;
-use Silex\Api\EventListenerProviderInterface;
-use Silex\Api\ControllerProviderInterface;
-use Silex\Provider\ExceptionHandlerServiceProvider;
-use Silex\Provider\RoutingServiceProvider;
-use Silex\Provider\HttpKernelServiceProvider;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\RequestContext;
+use Silex\EventListener\LocaleListener;
+use Silex\EventListener\MiddlewareListener;
+use Silex\EventListener\ConverterListener;
+use Silex\EventListener\StringToResponseListener;
 
 /**
  * The Silex framework class.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class Application extends Container implements HttpKernelInterface, TerminableInterface
+class Application extends \Pimple implements HttpKernelInterface, TerminableInterface
 {
-    const VERSION = '2.3.0';
+    const VERSION = '1.3.6';
 
     const EARLY_EVENT = 512;
     const LATE_EVENT = -512;
 
-    protected $providers = [];
+    protected $providers = array();
     protected $booted = false;
 
     /**
@@ -54,21 +57,106 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      *
      * Objects and parameters can be passed as argument to the constructor.
      *
-     * @param array $values the parameters or objects
+     * @param array $values The parameters or objects.
      */
-    public function __construct(array $values = [])
+    public function __construct(array $values = array())
     {
         parent::__construct();
+
+        $app = $this;
+
+        $this['logger'] = null;
+
+        $this['routes'] = $this->share(function () {
+            return new RouteCollection();
+        });
+
+        $this['controllers'] = $this->share(function () use ($app) {
+            return $app['controllers_factory'];
+        });
+
+        $this['controllers_factory'] = function () use ($app) {
+            return new ControllerCollection($app['route_factory']);
+        };
+
+        $this['route_class'] = 'Silex\\Route';
+        $this['route_factory'] = function () use ($app) {
+            return new $app['route_class']();
+        };
+
+        $this['exception_handler'] = $this->share(function () use ($app) {
+            return new ExceptionHandler($app['debug']);
+        });
+
+        $this['dispatcher_class'] = 'Symfony\\Component\\EventDispatcher\\EventDispatcher';
+        $this['dispatcher'] = $this->share(function () use ($app) {
+            /*
+             * @var EventDispatcherInterface
+             */
+            $dispatcher = new $app['dispatcher_class']();
+
+            $urlMatcher = new LazyUrlMatcher(function () use ($app) {
+                return $app['url_matcher'];
+            });
+            if (Kernel::VERSION_ID >= 20800) {
+                $dispatcher->addSubscriber(new RouterListener($urlMatcher, $app['request_stack'], $app['request_context'], $app['logger']));
+            } else {
+                $dispatcher->addSubscriber(new RouterListener($urlMatcher, $app['request_context'], $app['logger'], $app['request_stack']));
+            }
+            $dispatcher->addSubscriber(new LocaleListener($app, $urlMatcher, $app['request_stack']));
+            if (isset($app['exception_handler'])) {
+                $dispatcher->addSubscriber($app['exception_handler']);
+            }
+            $dispatcher->addSubscriber(new ResponseListener($app['charset']));
+            $dispatcher->addSubscriber(new MiddlewareListener($app));
+            $dispatcher->addSubscriber(new ConverterListener($app['routes'], $app['callback_resolver']));
+            $dispatcher->addSubscriber(new StringToResponseListener());
+
+            return $dispatcher;
+        });
+
+        $this['callback_resolver'] = $this->share(function () use ($app) {
+            return new CallbackResolver($app);
+        });
+
+        $this['resolver'] = $this->share(function () use ($app) {
+            return new ControllerResolver($app, $app['logger']);
+        });
+
+        $this['kernel'] = $this->share(function () use ($app) {
+            return new HttpKernel($app['dispatcher'], $app['resolver'], $app['request_stack']);
+        });
+
+        $this['request_stack'] = $this->share(function () use ($app) {
+            if (class_exists('Symfony\Component\HttpFoundation\RequestStack')) {
+                return new RequestStack();
+            }
+        });
+
+        $this['request_context'] = $this->share(function () use ($app) {
+            $context = new RequestContext();
+
+            $context->setHttpPort($app['request.http_port']);
+            $context->setHttpsPort($app['request.https_port']);
+
+            return $context;
+        });
+
+        $this['url_matcher'] = $this->share(function () use ($app) {
+            return new RedirectableUrlMatcher($app['routes'], $app['request_context']);
+        });
+
+        $this['request_error'] = $this->protect(function () {
+            throw new \RuntimeException('Accessed request service outside of request scope. Try moving that call to a before handler or controller.');
+        });
+
+        $this['request'] = $this['request_error'];
 
         $this['request.http_port'] = 80;
         $this['request.https_port'] = 443;
         $this['debug'] = false;
         $this['charset'] = 'UTF-8';
-        $this['logger'] = null;
-
-        $this->register(new HttpKernelServiceProvider());
-        $this->register(new RoutingServiceProvider());
-        $this->register(new ExceptionHandlerServiceProvider());
+        $this['locale'] = 'en';
 
         foreach ($values as $key => $value) {
             $this[$key] = $value;
@@ -83,11 +171,15 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      *
      * @return Application
      */
-    public function register(ServiceProviderInterface $provider, array $values = [])
+    public function register(ServiceProviderInterface $provider, array $values = array())
     {
         $this->providers[] = $provider;
 
-        parent::register($provider, $values);
+        $provider->register($this);
+
+        foreach ($values as $key => $value) {
+            $this[$key] = $value;
+        }
 
         return $this;
     }
@@ -100,20 +192,12 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      */
     public function boot()
     {
-        if ($this->booted) {
-            return;
-        }
-
-        $this->booted = true;
-
-        foreach ($this->providers as $provider) {
-            if ($provider instanceof EventListenerProviderInterface) {
-                $provider->subscribe($this, $this['dispatcher']);
-            }
-
-            if ($provider instanceof BootableProviderInterface) {
+        if (!$this->booted) {
+            foreach ($this->providers as $provider) {
                 $provider->boot($this);
             }
+
+            $this->booted = true;
         }
     }
 
@@ -226,11 +310,11 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             return;
         }
 
-        $this->extend('dispatcher', function (EventDispatcherInterface $dispatcher, $app) use ($callback, $priority, $eventName) {
+        $this['dispatcher'] = $this->share($this->extend('dispatcher', function (EventDispatcherInterface $dispatcher, $app) use ($callback, $priority, $eventName) {
             $dispatcher->addListener($eventName, $app['callback_resolver']->resolveCallback($callback), $priority);
 
             return $dispatcher;
-        });
+        }));
     }
 
     /**
@@ -247,7 +331,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
         $app = $this;
 
         $this->on(KernelEvents::REQUEST, function (GetResponseEvent $event) use ($callback, $app) {
-            if (!$event->isMasterRequest()) {
+            if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
                 return;
             }
 
@@ -273,7 +357,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
         $app = $this;
 
         $this->on(KernelEvents::RESPONSE, function (FilterResponseEvent $event) use ($callback, $app) {
-            if (!$event->isMasterRequest()) {
+            if (HttpKernelInterface::MASTER_REQUEST !== $event->getRequestType()) {
                 return;
             }
 
@@ -311,7 +395,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      * @param string $message    The status message
      * @param array  $headers    An array of HTTP headers
      */
-    public function abort($statusCode, $message = '', array $headers = [])
+    public function abort($statusCode, $message = '', array $headers = array())
     {
         throw new HttpException($statusCode, $message, null, $headers);
     }
@@ -357,10 +441,12 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
 
     /**
      * Flushes the controller collection.
+     *
+     * @param string $prefix The route prefix
      */
-    public function flush()
+    public function flush($prefix = '')
     {
-        $this['routes']->addCollection($this['controllers']->flush());
+        $this['routes']->addCollection($this['controllers']->flush($prefix));
     }
 
     /**
@@ -385,7 +471,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      *
      * @return StreamedResponse
      */
-    public function stream($callback = null, $status = 200, array $headers = [])
+    public function stream($callback = null, $status = 200, array $headers = array())
     {
         return new StreamedResponse($callback, $status, $headers);
     }
@@ -414,7 +500,7 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      *
      * @return JsonResponse
      */
-    public function json($data = [], $status = 200, array $headers = [])
+    public function json($data = array(), $status = 200, array $headers = array())
     {
         return new JsonResponse($data, $status, $headers);
     }
@@ -428,8 +514,10 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
      * @param null|string         $contentDisposition The type of Content-Disposition to set automatically with the filename
      *
      * @return BinaryFileResponse
+     *
+     * @throws \RuntimeException When the feature is not supported, before http-foundation v2.2
      */
-    public function sendFile($file, $status = 200, array $headers = [], $contentDisposition = null)
+    public function sendFile($file, $status = 200, array $headers = array(), $contentDisposition = null)
     {
         return new BinaryFileResponse($file, $status, $headers, true, $contentDisposition);
     }
@@ -437,12 +525,10 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
     /**
      * Mounts controllers under the given route prefix.
      *
-     * @param string                                                    $prefix      The route prefix
-     * @param ControllerCollection|callable|ControllerProviderInterface $controllers A ControllerCollection, a callable, or a ControllerProviderInterface instance
+     * @param string                                           $prefix      The route prefix
+     * @param ControllerCollection|ControllerProviderInterface $controllers A ControllerCollection or a ControllerProviderInterface instance
      *
      * @return Application
-     *
-     * @throws \LogicException
      */
     public function mount($prefix, $controllers)
     {
@@ -454,8 +540,8 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             }
 
             $controllers = $connectedControllers;
-        } elseif (!$controllers instanceof ControllerCollection && !is_callable($controllers)) {
-            throw new \LogicException('The "mount" method takes either a "ControllerCollection" instance, "ControllerProviderInterface" instance, or a callable.');
+        } elseif (!$controllers instanceof ControllerCollection) {
+            throw new \LogicException('The "mount" method takes either a "ControllerCollection" or a "ControllerProviderInterface" instance.');
         }
 
         $this['controllers']->mount($prefix, $controllers);
@@ -491,9 +577,17 @@ class Application extends Container implements HttpKernelInterface, TerminableIn
             $this->boot();
         }
 
+        $current = HttpKernelInterface::SUB_REQUEST === $type ? $this['request'] : $this['request_error'];
+
+        $this['request'] = $request;
+
         $this->flush();
 
-        return $this['kernel']->handle($request, $type, $catch);
+        $response = $this['kernel']->handle($request, $type, $catch);
+
+        $this['request'] = $current;
+
+        return $response;
     }
 
     /**

@@ -19,53 +19,50 @@ namespace Symfony\Component\HttpFoundation;
 class RequestMatcher implements RequestMatcherInterface
 {
     /**
-     * @var string|null
+     * @var string
      */
     private $path;
 
     /**
-     * @var string|null
+     * @var string
      */
     private $host;
 
     /**
-     * @var int|null
+     * @var array
      */
-    private $port;
+    private $methods = array();
 
     /**
-     * @var string[]
+     * @var string
      */
-    private $methods = [];
-
-    /**
-     * @var string[]
-     */
-    private $ips = [];
+    private $ips = array();
 
     /**
      * @var array
      */
-    private $attributes = [];
+    private $attributes = array();
 
     /**
      * @var string[]
      */
-    private $schemes = [];
+    private $schemes = array();
 
     /**
+     * @param string|null          $path
+     * @param string|null          $host
      * @param string|string[]|null $methods
      * @param string|string[]|null $ips
+     * @param array                $attributes
      * @param string|string[]|null $schemes
      */
-    public function __construct(string $path = null, string $host = null, $methods = null, $ips = null, array $attributes = [], $schemes = null, int $port = null)
+    public function __construct($path = null, $host = null, $methods = null, $ips = null, array $attributes = array(), $schemes = null)
     {
         $this->matchPath($path);
         $this->matchHost($host);
         $this->matchMethod($methods);
         $this->matchIps($ips);
         $this->matchScheme($schemes);
-        $this->matchPort($port);
 
         foreach ($attributes as $k => $v) {
             $this->matchAttribute($k, $v);
@@ -79,13 +76,13 @@ class RequestMatcher implements RequestMatcherInterface
      */
     public function matchScheme($scheme)
     {
-        $this->schemes = null !== $scheme ? array_map('strtolower', (array) $scheme) : [];
+        $this->schemes = array_map('strtolower', (array) $scheme);
     }
 
     /**
      * Adds a check for the URL host name.
      *
-     * @param string|null $regexp A Regexp
+     * @param string $regexp A Regexp
      */
     public function matchHost($regexp)
     {
@@ -93,19 +90,9 @@ class RequestMatcher implements RequestMatcherInterface
     }
 
     /**
-     * Adds a check for the the URL port.
-     *
-     * @param int|null $port The port number to connect to
-     */
-    public function matchPort(?int $port)
-    {
-        $this->port = $port;
-    }
-
-    /**
      * Adds a check for the URL path info.
      *
-     * @param string|null $regexp A Regexp
+     * @param string $regexp A Regexp
      */
     public function matchPath($regexp)
     {
@@ -125,21 +112,21 @@ class RequestMatcher implements RequestMatcherInterface
     /**
      * Adds a check for the client IP.
      *
-     * @param string|string[]|null $ips A specific IP address or a range specified using IP/netmask like 192.168.1.0/24
+     * @param string|string[] $ips A specific IP address or a range specified using IP/netmask like 192.168.1.0/24
      */
     public function matchIps($ips)
     {
-        $this->ips = null !== $ips ? (array) $ips : [];
+        $this->ips = (array) $ips;
     }
 
     /**
      * Adds a check for the HTTP method.
      *
-     * @param string|string[]|null $method An HTTP method or an array of HTTP methods
+     * @param string|string[] $method An HTTP method or an array of HTTP methods
      */
     public function matchMethod($method)
     {
-        $this->methods = null !== $method ? array_map('strtoupper', (array) $method) : [];
+        $this->methods = array_map('strtoupper', (array) $method);
     }
 
     /**
@@ -158,11 +145,11 @@ class RequestMatcher implements RequestMatcherInterface
      */
     public function matches(Request $request)
     {
-        if ($this->schemes && !\in_array($request->getScheme(), $this->schemes, true)) {
+        if ($this->schemes && !in_array($request->getScheme(), $this->schemes)) {
             return false;
         }
 
-        if ($this->methods && !\in_array($request->getMethod(), $this->methods, true)) {
+        if ($this->methods && !in_array($request->getMethod(), $this->methods)) {
             return false;
         }
 
@@ -180,16 +167,12 @@ class RequestMatcher implements RequestMatcherInterface
             return false;
         }
 
-        if (null !== $this->port && 0 < $this->port && $request->getPort() !== $this->port) {
-            return false;
-        }
-
         if (IpUtils::checkIp($request->getClientIp(), $this->ips)) {
             return true;
         }
 
         // Note to future implementors: add additional checks above the
         // foreach above or else your check might not be run!
-        return 0 === \count($this->ips);
+        return count($this->ips) === 0;
     }
 }
