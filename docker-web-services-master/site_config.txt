@@ -1,0 +1,11 @@
+user: webmaster 
+password: webmaster
+
+docker run -i -t -p "80:80" -v ${PWD}/app:/app --name students mattrayner/lamp:latest
+
+docker start students
+
+
+
+
+
