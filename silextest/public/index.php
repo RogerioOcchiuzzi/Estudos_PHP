@@ -20,3 +20,22 @@ $app->register(
     new Silex\Provider\MonologServiceProvider(),
     ['monolog.logfile' => __DIR__ . '/../app.log']);
 
+$app->register(new Silex\Provider\DoctrineServiceProvider(), [
+    'dbs.options' => [
+    [
+    'driver' => 'pdo_mysql',
+    'host' => '127.0.0.1',
+    'dbname' => 'cookbook',
+    'user' => 'webmaster',
+    'password' => 'webmaster']]
+]);
+
+$app->get('/','CookBook\\Controllers\\RecipesController::getAll');
+
+$app->post('/recipes',
+    'CookBook\\Controllers\\RecipesController::create');
+
+$app->get('/recipes',
+    'CookBook\\Controllers\\RecipesController::getNewForm');
+
+$app->run();

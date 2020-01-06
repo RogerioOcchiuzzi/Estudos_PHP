@@ -1,0 +1,30 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+    <h1>Add recipe</h1>
+    <form method="post">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" name="name" value="{{ name is defined ? name : "" }}" />
+        </div>
+        <div>
+            <label for="ingredients">Ingredients</label>
+            <textarea name="ingredients">
+            {{ ingredients is defined ? ingredients : "" }}
+            </textarea>
+        </div>
+        <div>
+            <label for="instructions">Instructions</label>
+            <textarea name="instructions">
+            {{ instructions is defined ? instructions : "" }}
+            </textarea>
+        </div>
+        <div>
+            <label for="time">Time (minutes)</label>
+            <input type="number" name="time" value="{{ time is defined ? time : "" }}" />
+        </div>
+        <div>
+            <button type="submit">Save</button>
+        </div>
+    </form>
+{% endblock %}
